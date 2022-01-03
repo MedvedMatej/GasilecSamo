@@ -58,6 +58,22 @@ const houseDefaults = {
   type: "house"
 };
 
+const treeDefaults = {
+  "aabb": {
+    "min": [-5, -8, -5],
+    "max": [5, 8, 5]
+  },
+  type: "tree"
+};
+
+const burningTreeDefaults = {
+  "aabb": {
+    "min": [-5, -8, -5],
+    "max": [5, 8, 5]
+  },
+  type: "burningTree"
+};
+
 class App extends Application {
   start() {
     this.time = Date.now();
@@ -86,8 +102,6 @@ class App extends Application {
     this.camera = await this.loader.loadNode("Camera");
     //console.log(this.camera.translation)
     
-    
-    
     this.player = await this.loader.loadNode("Cev");
     
     this.player.addChild(this.camera);
@@ -112,6 +126,13 @@ class App extends Application {
 
     this.house = await this.loader.loadNode("House");
     this.loader.setNode("House", houseDefaults);
+
+    this.tree = await this.loader.loadNode("Tree");
+    this.loader.setNode("Tree", treeDefaults);
+
+    this.fireTree = await this.loader.loadNode("FireTree");
+    this.loader.setNode("FireTree", burningTreeDefaults);
+
 
     if (!this.scene || !this.camera) {
       throw new Error("Scene or Camera not present in glTF");
@@ -158,6 +179,27 @@ class App extends Application {
     h4.rotation[1] = Math.PI;
     h4.updateMatrix();
 
+    let t1 = this.tree.clone();
+    t1.translation = [10,15,-45];
+    t1.updateMatrix();
+
+    let t2 = t1.clone();
+    t2.translation = [-15, 15, -50];
+    t2.updateMatrix();
+
+    let t3 = t1.clone();
+    t3.translation = [-15, 15, 55];
+    t3.updateMatrix();
+
+    let t4 = t1.clone();
+    t4.translation = [55, 15, 30];
+    t4.updateMatrix();
+
+
+    this.scene.addNode(t1);
+    this.scene.addNode(t2);
+    this.scene.addNode(t3);
+    this.scene.addNode(t4);
     this.scene.addNode(h1);
     this.scene.addNode(h2);
     this.scene.addNode(h3);
