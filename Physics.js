@@ -6,9 +6,9 @@ export class Physics {
     this.bullet = bullet;
   }
 
-  delNode(node){
+  delNode(node) {
     let i = this.scene.nodes.indexOf(node);
-    this.scene.nodes.splice(i,1)
+    this.scene.nodes.splice(i, 1)
   }
 
   update(dt) {
@@ -18,30 +18,37 @@ export class Physics {
         //node.getGlobalTransform();
 
         //limit space
-          let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
+        let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
-            if(tmp[0] < -60 || tmp [0] > 63){
-              if(node.children.length > 0 && node.children[0].camera)
-                node.velocity[0] = 0
-              else
-              this.delNode(node)
-            };
-            if(tmp[2] < -60 || tmp [2] > 63){
-              if(node.children.length > 0 && node.children[0].camera)
-                node.velocity[2] = 0
-              else
-              this.delNode(node)
-            } 
-        
-
+        if (tmp[0] < -60 || tmp[0] > 63) {
+          if (node.children.length > 0 && node.children[0].camera)
+            node.velocity[0] = 0
+          else
+            this.delNode(node)
+        };
+        if (tmp[2] < -60 || tmp[2] > 63) {
+          if (node.children.length > 0 && node.children[0].camera)
+            node.velocity[2] = 0
+          else
+            this.delNode(node)
+        }
         vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
 
         this.scene.traverse((other) => {
-          if (node !== other && node.children.length == 0 && other.children.length == 0) {
+          
+          //refill water
+          if (other.hydrant && node.player) {
+            let x = vec3.distance(node.translation, other.translation)
+            if (x < 12) {
+              node.ammo += dt*5;
+              if (node.ammo > 100) node.ammo = 100;
+            }
+          }
+          else if (node !== other && node.children.length == 0 && other.children.length == 0) {
 
             let x = vec3.distance(node.translation, other.translation)
-            if(x < 5){
-              this.delNode(other);
+            if (x < 5) {
+              this.delNode(node);
             }
 
           }
@@ -81,7 +88,7 @@ export class Physics {
 
   resolveCollision(a, b) {
     // Update bounding boxes with global translation.
-    console.log(a.aabb,b.aabb)
+    console.log(a.aabb, b.aabb)
 
     const ta = a.getGlobalTransform();
     const tb = b.getGlobalTransform();

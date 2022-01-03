@@ -68,15 +68,17 @@ class App extends Application {
     this.player.time_left = 300;
     this.player.ammo = 100;
     this.player.score = 0;
+    this.player.player = true;
     this.player.addChild(this.camera);
-    //this.camera.translation = [0 , 10, 10];
-    //this.camera.updateMatrix();
-    //console.log(this.player.rotation)
-    /* this.player.rotation = [0,0,0,1];
-    this.camera.rotation = [0,0,0,1];
-    this.camera.updateMatrix(); */
-
     this.loader.setNode("Hoop", carDefaults);
+
+    this.hydrant = await this.loader.loadNode("Hydrant");
+    this.hydrant.hydrant = true;
+
+    this.window = await this.loader.loadNode("BigWindow");
+    this.window.window = true;
+    this.fireWindow = await this.loader.loadNode("BigWindowFire");
+    this.fireWindow.fireWindow = true;
 
     if (!this.scene || !this.camera) {
       throw new Error("Scene or Camera not present in glTF");
@@ -117,7 +119,7 @@ class App extends Application {
   }
 
   update() {
-    //car
+    //player
     if (!this.player) return;
     const c = this.player;
 
@@ -132,7 +134,7 @@ class App extends Application {
     let s = Math.floor(c.time_left) % 60;
     if (s < 10) s = "0" + s;
     document.getElementById("time").innerHTML = "Preostali Čas: " + m + ":" + s;
-    document.getElementById("ammo").innerHTML = "Rezervuar z vodo: " + c.ammo;
+    document.getElementById("ammo").innerHTML = "Rezervuar z vodo: " + Math.floor(c.ammo);
 
 
 
@@ -198,6 +200,34 @@ class App extends Application {
       }
         c.left_click = false;
     }
+
+    let count_fires = 0;
+    this.scene.traverse((node) => {
+      if(node.fireWindow)
+        count_fires++;
+    });
+    //console.log(count_fires)
+    if(count_fires < 2)
+      while(count_fires < 2){
+        this.scene.traverse((node) => {
+          if(node.window){
+            //console.log("Window!")
+            let translation = vec3.clone(node.translation);
+
+            let node1 = this.fireWindow.clone();
+            node1.translation = translation;
+            node1.fireWindow = true;
+            node1.updateMatrix();
+
+            let i = this.scene.nodes.indexOf(node);
+            this.scene.nodes.splice(i, 1)
+            this.scene.addNode(node1);
+            return;
+          }
+          count_fires++;
+        });
+      }
+    //console.log(count_fires)
 
     if (this.physics) {
       this.physics.update(dt);
