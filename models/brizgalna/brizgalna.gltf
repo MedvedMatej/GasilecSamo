@@ -215,7 +215,7 @@
                 "aspectRatio" : 1.7777777777777777,
                 "yfov" : 1.5,
                 "zfar" : 300,
-                "znear" : 0.005
+                "znear" : 0.001
             },
             "type" : "perspective"
         }

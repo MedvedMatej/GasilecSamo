@@ -16,37 +16,36 @@ const playerDefaults = {
   maxSpeed: 20,
   friction: 0.8,
   acceleration: 20,
-  player: true
+  player: true,
+  time_left: 300,
+  score: 0,
+  ammo: 100
 };
 
 const fireWindowDefaults = {
   "aabb": {
-    "min": [-1, -1, -1],
-    "max": [1, 1, 1]
+    "min": [-2, -2.4, -0.1],
+    "max": [2, 2.4, 0.1]
   },
   fireWindow: true
 };
 
 const windowDefaults = {
   "aabb": {
-    "min": [-1, -1, -1],
-    "max": [1, 1, 1]
+    "min": [-2, -2.4, -0.1],
+    "max": [2, 2.4, 0.1]
   },
   window: true
 };
 
 const hydrantDefaults = {
-  "aabb": {
-    "min": [-1, -1, -1],
-    "max": [1, 1, 1]
-  },
   hydrant: true
 };
 
 const waterDefaults = {
   "aabb": {
-    "min": [-1, -1, -1],
-    "max": [1, 1, 1]
+    "min": [-0.5, -0.5, -0.5],
+    "max": [0.5, 0.5, 0.5]
   },
   bullet: true
 };
@@ -79,13 +78,10 @@ class App extends Application {
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
 
-    this.physics = new Physics(this.scene);
+    
 
     this.player = await this.loader.loadNode("Hoop");
-    this.player.time_left = 300;
-    this.player.ammo = 100;
-    this.player.score = 0;
-    this.player.player = true;
+
     this.player.addChild(this.camera);
     this.loader.setNode("Hoop", playerDefaults);
     this.bullet = await this.loader.loadNode("Water")
@@ -97,6 +93,7 @@ class App extends Application {
 
     this.window = await this.loader.loadNode("BigWindow");
     this.loader.setNode("BigWindow", windowDefaults);
+    console.log(this.window.translation)
 
     this.fireWindow = await this.loader.loadNode("BigWindowFire");
     this.loader.setNode("BigWindowFire", fireWindowDefaults);
@@ -108,7 +105,7 @@ class App extends Application {
     if (!this.camera.camera) {
       throw new Error("Camera node does not contain a camera reference");
     }
-
+    this.physics = new Physics(this.scene);
     this.renderer = new Renderer(this.gl);
     this.renderer.prepareScene(this.scene);
     this.resize();
@@ -128,7 +125,7 @@ class App extends Application {
     this.startTime = this.time;
 
 
-    document.getElementById("score").innerHTML = "Pogasenih hiš: " + c.score;
+    document.getElementById("score").innerHTML = "Točke: " + c.score;
     c.time_left -= dt;
     let m = Math.floor(c.time_left / 60);
     let s = Math.floor(c.time_left) % 60;

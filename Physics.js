@@ -3,6 +3,12 @@ import { vec3, mat4 } from "./lib/gl-matrix-module.js";
 export class Physics {
   constructor(scene) {
     this.scene = scene;
+
+    this.scene.traverse((node) => {
+      if(node.player){
+        this.player = node;
+      }
+    });
   }
 
   delNode(node) {
@@ -18,7 +24,7 @@ export class Physics {
         //temporary for object placement
         if(node.player){
           if(node.velocity[0] >0){
-            //console.log(node.translation[0])
+            console.log(node.translation[0])
           }
         }
 
@@ -30,21 +36,12 @@ export class Physics {
         //collision checks
         this.scene.traverse((other) => {
           if(node.aabb && other.aabb && node !== other && node.bullet){
-            console.log(node,other)
             this.resolveCollision(node, other)
           }
           
           //refill water
           if (other.hydrant && node.player) {
             this.refillWater(node,other,dt);
-          }
-          else if (node !== other && node.children.length == 0 && other.children.length == 0) {
-
-            let x = vec3.distance(node.translation, other.translation)
-            if (x < 5) {
-              this.delNode(node);
-            }
-
           }
         });
         node.updateMatrix();
@@ -107,6 +104,7 @@ export class Physics {
   }
 
   resolveCollision(a, b) {
+    if((a.bullet || a.player) && (b.bullet || b.player)) return;
     // Update bounding boxes with global translation.
     //console.log(a.aabb, b.aabb)
 
@@ -137,11 +135,24 @@ export class Physics {
       return;
     }
 
-    if(a.bullet && !b.bullet){
+    if(a.bullet){
       this.delNode(a);
-      console.log("Bullet destroyed");
-      console.log(a,b)
+      console.log("...")
+      if(b.window)
+        console.log("WINDOW HIT");
+      if(b.fireWindow){
+        //console.log(this.player)
+        this.player.score++;
+      }
+      //console.log(a,b)
     }
+/*     else if(b.bullet){
+      this.delNode(b);
+      console.log(".+.")
+      if(a.window)
+        console.log("WINDOW HIT");
+      
+    } */
 
 
     /* console.log("Here")
