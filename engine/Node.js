@@ -13,7 +13,7 @@ export class Node {
       : vec3.fromValues(1, 1, 1);
     this.matrix = options.matrix ? mat4.clone(options.matrix) : mat4.create();
 
-    this.player = options.player ? options.scale : "false";
+    //this.player = options.player ? options.scale : "false";
 
     if (options.matrix) {
       this.updateTransform();

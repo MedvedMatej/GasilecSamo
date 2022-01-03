@@ -1,9 +1,8 @@
 import { vec3, mat4 } from "./lib/gl-matrix-module.js";
 
 export class Physics {
-  constructor(scene, bullet) {
+  constructor(scene) {
     this.scene = scene;
-    this.bullet = bullet;
   }
 
   delNode(node) {
@@ -14,9 +13,47 @@ export class Physics {
   update(dt) {
     this.scene.traverse((node) => {
       if (node.velocity) {
-
         //node.getGlobalTransform();
 
+        //temporary for object placement
+        if(node.player){
+          if(node.velocity[0] >0){
+            //console.log(node.translation[0])
+          }
+        }
+
+        this.limitPlayArea(node,dt);
+
+        //move
+        vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
+
+        //collision checks
+        this.scene.traverse((other) => {
+          if(node.aabb && other.aabb && node !== other && node.bullet){
+            console.log(node,other)
+            this.resolveCollision(node, other)
+          }
+          
+          //refill water
+          if (other.hydrant && node.player) {
+            this.refillWater(node,other,dt);
+          }
+          else if (node !== other && node.children.length == 0 && other.children.length == 0) {
+
+            let x = vec3.distance(node.translation, other.translation)
+            if (x < 5) {
+              this.delNode(node);
+            }
+
+          }
+        });
+        node.updateMatrix();
+      }
+
+    });
+  }
+
+  limitPlayArea(node,dt){
         //limit space
         let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
@@ -32,31 +69,14 @@ export class Physics {
           else
             this.delNode(node)
         }
-        vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
+  }
 
-        this.scene.traverse((other) => {
-          
-          //refill water
-          if (other.hydrant && node.player) {
-            let x = vec3.distance(node.translation, other.translation)
-            if (x < 12) {
-              node.ammo += dt*5;
-              if (node.ammo > 100) node.ammo = 100;
-            }
-          }
-          else if (node !== other && node.children.length == 0 && other.children.length == 0) {
-
-            let x = vec3.distance(node.translation, other.translation)
-            if (x < 5) {
-              this.delNode(node);
-            }
-
-          }
-        });
-        node.updateMatrix();
-      }
-
-    });
+  refillWater(node,other,dt){
+    let x = vec3.distance(node.translation, other.translation)
+    if (x < 12) {
+      node.ammo += dt*5;
+      if (node.ammo > 100) node.ammo = 100;
+    }
   }
 
   intervalIntersection(min1, max1, min2, max2) {
@@ -88,7 +108,7 @@ export class Physics {
 
   resolveCollision(a, b) {
     // Update bounding boxes with global translation.
-    console.log(a.aabb, b.aabb)
+    //console.log(a.aabb, b.aabb)
 
     const ta = a.getGlobalTransform();
     const tb = b.getGlobalTransform();
@@ -117,6 +137,14 @@ export class Physics {
       return;
     }
 
+    if(a.bullet && !b.bullet){
+      this.delNode(a);
+      console.log("Bullet destroyed");
+      console.log(a,b)
+    }
+
+
+    /* console.log("Here")
     // Move node A minimally to avoid collision.
     const diffa = vec3.sub(vec3.create(), maxb, mina);
     const diffb = vec3.sub(vec3.create(), maxa, minb);
@@ -149,6 +177,6 @@ export class Physics {
     }
 
     vec3.add(a.translation, a.translation, minDirection);
-    a.updateTransform();
+    a.updateTransform(); */
   }
 }

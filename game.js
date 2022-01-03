@@ -7,11 +7,48 @@ import { Physics } from "./Physics.js";
 
 import { vec3, mat4 } from "./lib/gl-matrix-module.js";
 
-const carDefaults = {
+const playerDefaults = {
+  "aabb": {
+    "min": [-1, -1, -1],
+    "max": [1, 1, 1]
+  },
   velocity: [0, 0, 0],
   maxSpeed: 20,
   friction: 0.8,
   acceleration: 20,
+  player: true
+};
+
+const fireWindowDefaults = {
+  "aabb": {
+    "min": [-1, -1, -1],
+    "max": [1, 1, 1]
+  },
+  fireWindow: true
+};
+
+const windowDefaults = {
+  "aabb": {
+    "min": [-1, -1, -1],
+    "max": [1, 1, 1]
+  },
+  window: true
+};
+
+const hydrantDefaults = {
+  "aabb": {
+    "min": [-1, -1, -1],
+    "max": [1, 1, 1]
+  },
+  hydrant: true
+};
+
+const waterDefaults = {
+  "aabb": {
+    "min": [-1, -1, -1],
+    "max": [1, 1, 1]
+  },
+  bullet: true
 };
 
 class App extends Application {
@@ -33,26 +70,7 @@ class App extends Application {
 
     this.load("./models/brizgalna/brizgalna.gltf");
 
-
-  }
-
-  enableCamera() {
-    if(!this.focus){
-      this.focus = true;
-      this.canvas.requestPointerLock();
-    }
-  }
-
-  pointerlockchangeHandler() {
-    if (!this.camera) {
-        return;
-    }
-
-    if (document.pointerLockElement === this.canvas) {
-        this.enable();
-    } else {
-        this.disable();
-    }
+    this.initLevel();
   }
 
   async load(uri) {
@@ -61,8 +79,7 @@ class App extends Application {
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
 
-    this.bullet = await this.loader.loadNode("Water")
-    this.physics = new Physics(this.scene, this.bullet);
+    this.physics = new Physics(this.scene);
 
     this.player = await this.loader.loadNode("Hoop");
     this.player.time_left = 300;
@@ -70,15 +87,19 @@ class App extends Application {
     this.player.score = 0;
     this.player.player = true;
     this.player.addChild(this.camera);
-    this.loader.setNode("Hoop", carDefaults);
+    this.loader.setNode("Hoop", playerDefaults);
+    this.bullet = await this.loader.loadNode("Water")
+    this.loader.setNode("Water", waterDefaults);
+    console.log(this.bullet)
 
     this.hydrant = await this.loader.loadNode("Hydrant");
-    this.hydrant.hydrant = true;
+    this.loader.setNode("Hydrant", hydrantDefaults);
 
     this.window = await this.loader.loadNode("BigWindow");
-    this.window.window = true;
+    this.loader.setNode("BigWindow", windowDefaults);
+
     this.fireWindow = await this.loader.loadNode("BigWindowFire");
-    this.fireWindow.fireWindow = true;
+    this.loader.setNode("BigWindowFire", fireWindowDefaults);
 
     if (!this.scene || !this.camera) {
       throw new Error("Scene or Camera not present in glTF");
@@ -93,28 +114,7 @@ class App extends Application {
     this.resize();
   }
 
-  mousemoveHandler(e) {
-
-    const c = this.player;
-    const mouseSensitivity = 0.002;
-    const dx = e.movementX;
-    const dy = e.movementY;
-
-    c.rotation[0] -= dy * mouseSensitivity;
-    c.rotation[1] -= dx * mouseSensitivity;
-
-    const pi = Math.PI;
-    const twopi = pi * 2;
-    const halfpi = pi / 2;
-
-    if (c.rotation[0] > halfpi) {
-        c.rotation[0] = halfpi;
-    }
-    if (c.rotation[0] < -halfpi) {
-        c.rotation[0] = -halfpi;
-    }
-
-    c.rotation[1] = ((c.rotation[1] ))% twopi;
+  initLevel() {
 
   }
 
@@ -130,7 +130,7 @@ class App extends Application {
 
     document.getElementById("score").innerHTML = "Pogasenih hiš: " + c.score;
     c.time_left -= dt;
-    let m = Math.floor(c.time_left/60);
+    let m = Math.floor(c.time_left / 60);
     let s = Math.floor(c.time_left) % 60;
     if (s < 10) s = "0" + s;
     document.getElementById("time").innerHTML = "Preostali Čas: " + m + ":" + s;
@@ -186,31 +186,41 @@ class App extends Application {
     }
 
     //shotting
-    if(c.left_click){
-      if(c.ammo > 0){
+    if (c.left_click) {
+      if (c.ammo >= 1) {
         c.ammo--;
 
         let bullet_clone = this.bullet.clone();
-        bullet_clone.translation = vec3.add(vec3.create(),c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1])*1 , Math.sin(c.rotation[0])*1 ,-Math.cos(c.rotation[1])*1));
-        
+        bullet_clone.translation = vec3.add(vec3.create(), c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * 1, Math.sin(c.rotation[0]) * 1, -Math.cos(c.rotation[1]) * 1));
+
         let speed = 30;
-        const forward = vec3.set(vec3.create(), -Math.sin(c.rotation[1])*speed , Math.sin(c.rotation[0])*speed ,-Math.cos(c.rotation[1])*speed);
+        const forward = vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * speed, Math.sin(c.rotation[0]) * speed, -Math.cos(c.rotation[1]) * speed);
         bullet_clone.velocity = forward;
+        bullet_clone.bullet = true;
+        bullet_clone.aabb = this.bullet.aabb;
         this.scene.addNode(bullet_clone);
       }
-        c.left_click = false;
+      c.left_click = false;
     }
 
+    //this.burnHouses();
+
+    if (this.physics) {
+      this.physics.update(dt);
+    }
+  }
+
+  burnHouses() {
     let count_fires = 0;
     this.scene.traverse((node) => {
-      if(node.fireWindow)
+      if (node.fireWindow)
         count_fires++;
     });
     //console.log(count_fires)
-    if(count_fires < 2)
-      while(count_fires < 2){
+    if (count_fires < 2)
+      while (count_fires < 2) {
         this.scene.traverse((node) => {
-          if(node.window){
+          if (node.window) {
             //console.log("Window!")
             let translation = vec3.clone(node.translation);
 
@@ -227,11 +237,6 @@ class App extends Application {
           count_fires++;
         });
       }
-    //console.log(count_fires)
-
-    if (this.physics) {
-      this.physics.update(dt);
-    }
   }
 
   render() {
@@ -259,23 +264,14 @@ class App extends Application {
     this.keys[e.code] = false;
   }
 
-  mousedownHandler(e){
-    switch(e.which){
-      case 1: 
+  mousedownHandler(e) {
+    switch (e.which) {
+      case 1:
         this.player.left_click = true;
         console.log("Fire!!")
         break;
     }
   }
-
-/*   mouseupHandler(e){
-    switch(e.which){
-      case 1: 
-        this.player.left_click = false;
-        console.log("No Fire!!")
-        break;
-    }
-  } */
 
   enable() {
     document.addEventListener("mousemove", this.mousemoveHandler);
@@ -303,12 +299,56 @@ class App extends Application {
     this.focus = false;
   }
 
+  enableCamera() {
+    if (!this.focus) {
+      this.focus = true;
+      this.canvas.requestPointerLock();
+    }
+  }
+
+  pointerlockchangeHandler() {
+    if (!this.camera) {
+      return;
+    }
+
+    if (document.pointerLockElement === this.canvas) {
+      this.enable();
+    } else {
+      this.disable();
+    }
+  }
+
+  mousemoveHandler(e) {
+
+    const c = this.player;
+    const mouseSensitivity = 0.002;
+    const dx = e.movementX;
+    const dy = e.movementY;
+
+    c.rotation[0] -= dy * mouseSensitivity;
+    c.rotation[1] -= dx * mouseSensitivity;
+
+    const pi = Math.PI;
+    const twopi = pi * 2;
+    const halfpi = pi / 2;
+
+    if (c.rotation[0] > halfpi) {
+      c.rotation[0] = halfpi;
+    }
+    if (c.rotation[0] < -halfpi) {
+      c.rotation[0] = -halfpi;
+    }
+
+    c.rotation[1] = ((c.rotation[1])) % twopi;
+
+  }
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.querySelector("canvas");
   const app = new App(canvas);
-  canvas.onclick = function(){
+  canvas.onclick = function () {
     app.enableCamera()
   }
 });
