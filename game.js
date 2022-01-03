@@ -66,12 +66,12 @@ const treeDefaults = {
   type: "tree"
 };
 
-const burningTreeDefaults = {
+const fireTreeDefaults = {
   "aabb": {
     "min": [-5, -8, -5],
     "max": [5, 8, 5]
   },
-  type: "burningTree"
+  type: "fireTree"
 };
 
 class App extends Application {
@@ -101,9 +101,9 @@ class App extends Application {
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
     //console.log(this.camera.translation)
-    
+
     this.player = await this.loader.loadNode("Cev");
-    
+
     this.player.addChild(this.camera);
     this.camera.translation[1] += 0.3;
     this.camera.translation[2] += 0.2;
@@ -111,8 +111,6 @@ class App extends Application {
     this.loader.setNode("Cev", playerDefaults);
     this.bullet = await this.loader.loadNode("Water")
     this.loader.setNode("Water", waterDefaults);
-    
-    console.log(this.player.type)
 
     this.hydrant = await this.loader.loadNode("FireHydrant");
     this.loader.setNode("FireHydrant", hydrantDefaults);
@@ -131,7 +129,7 @@ class App extends Application {
     this.loader.setNode("Tree", treeDefaults);
 
     this.fireTree = await this.loader.loadNode("FireTree");
-    this.loader.setNode("FireTree", burningTreeDefaults);
+    this.loader.setNode("FireTree", fireTreeDefaults);
 
 
     if (!this.scene || !this.camera) {
@@ -151,16 +149,16 @@ class App extends Application {
 
   initLevel() {
     let win1 = this.window.clone();
-    win1.translation = [6.5,0,6.5];
+    win1.translation = [6.5, 0, 6.5];
     win1.updateMatrix();
-    
+
     let win2 = win1.clone();
-    win2.translation = [-6.5,0,6.5];
+    win2.translation = [-6.5, 0, 6.5];
     win2.updateMatrix();
-    
-    
+
+
     let h1 = this.house.clone();
-    h1.translation[1] =10;
+    h1.translation[1] = 10;
     h1.updateMatrix();
     h1.addChild(win1);
     h1.addChild(win2);
@@ -180,7 +178,7 @@ class App extends Application {
     h4.updateMatrix();
 
     let t1 = this.tree.clone();
-    t1.translation = [10,15,-45];
+    t1.translation = [10, 15, -45];
     t1.updateMatrix();
 
     let t2 = t1.clone();
@@ -281,7 +279,7 @@ class App extends Application {
         c.ammo--;
 
         let bullet_clone = this.bullet.clone();
-        bullet_clone.translation = vec3.add(vec3.create(), c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1])*5 , Math.sin(c.rotation[0]) , -Math.cos(c.rotation[1])*5 ));
+        bullet_clone.translation = vec3.add(vec3.create(), c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * 5, Math.sin(c.rotation[0]), -Math.cos(c.rotation[1]) * 5));
 
         let speed = 30;
         const forward = vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * speed, Math.sin(c.rotation[0]) * speed, -Math.cos(c.rotation[1]) * speed);
@@ -293,40 +291,64 @@ class App extends Application {
       c.left_click = false;
     }
 
-    //this.burnHouses();
+    this.burnHouses();
+    this.burnTrees();
 
     if (this.physics) {
       this.physics.update(dt);
     }
   }
 
+  burnTrees() {
+    let count_fires = 0;
+    this.scene.traverse((node) => {
+      if (node.type == "fireTree")
+        count_fires++;
+    });
+    //console.log("Burning trees: ", count_fires)
+    if(count_fires < 2){
+      this.scene.traverse((node) => {
+        //console.log("Burning")
+        let ft = this.fireTree.clone();
+        if (node.type == "tree" && count_fires < 5) {
+          let trans = vec3.clone(node.translation);
+          ft.translation = trans;
+          ft.updateMatrix();
+          
+          let i = this.scene.nodes.indexOf(node);
+          this.scene.nodes.splice(i, 1)
+          this.scene.addNode(ft);
+          count_fires++;
+          return;
+        }
+      });
+    }
+    console.log(count_fires)
+  }
+
   burnHouses() {
     let count_fires = 0;
     this.scene.traverse((node) => {
-      if (node.type = "fireWindow")
+      if (node.type == "fireWindow")
         count_fires++;
     });
-    //console.log(count_fires)
-    if (count_fires < 2)
-      while (count_fires < 2) {
-        this.scene.traverse((node) => {
-          if (node.type == "window") {
-            //console.log("Window!")
-            let translation = vec3.clone(node.translation);
 
-            let node1 = this.fireWindow.clone();
-            node1.translation = translation;
-            node1.fireWindow = true;
-            node1.updateMatrix();
-
-            let i = this.scene.nodes.indexOf(node);
-            this.scene.nodes.splice(i, 1)
-            this.scene.addNode(node1);
-            return;
-          }
+    if(count_fires < 3){
+      this.scene.traverse((node) => {
+        let fw = this.fireWindow.clone();
+        if (node.type == "window" && node.parent && count_fires < 6) {
+          let trans = vec3.clone(node.translation);
+          fw.translation = trans;
+          fw.updateMatrix();
+          
+          let house = node.parent;
+          house.addChild(fw);
+          house.removeChild(node);
           count_fires++;
-        });
-      }
+          return;
+        }
+      });
+    }
   }
 
   render() {
@@ -358,7 +380,6 @@ class App extends Application {
     switch (e.which) {
       case 1:
         this.player.left_click = true;
-        console.log("Fire!!")
         break;
     }
   }

@@ -5,7 +5,7 @@ export class Physics {
     this.scene = scene;
 
     this.scene.traverse((node) => {
-      if(node.type == "player"){
+      if (node.type == "player") {
         this.player = node;
       }
     });
@@ -20,20 +20,24 @@ export class Physics {
     this.scene.traverse((node) => {
       if (node.velocity) {
 
-        this.limitPlayArea(node,dt);
+        this.limitPlayArea(node, dt);
 
         //move
         vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
 
+        if (node.type == "bullet") {
+          node.velocity[1] -= 10 * dt;
+        }
+
         //collision checks
         this.scene.traverse((other) => {
-          if(node.aabb && other.aabb && node !== other){
+          if (node.aabb && other.aabb && node !== other) {
             this.resolveCollision(node, other)
           }
-          
+
           //refill water
           if (other.type == "hydrant" && node.type == "player") {
-            this.refillWater(node,other,dt);
+            this.refillWater(node, other, dt);
           }
         });
         node.updateMatrix();
@@ -42,29 +46,28 @@ export class Physics {
     });
   }
 
-  limitPlayArea(node,dt){
-        //limit space
-        let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
+  limitPlayArea(node, dt) {
+    //limit space
+    let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
-        if (tmp[0] < -60 || tmp[0] > 63) {
-          console.log(node.type)
-          if (node.type == "player")
-            node.velocity[0] = 0
-          else
-            this.delNode(node)
-        };
-        if (tmp[2] < -60 || tmp[2] > 63) {
-          if (node.type == "player")
-            node.velocity[2] = 0
-          else
-            this.delNode(node)
-        }
+    if (tmp[0] < -60 || tmp[0] > 63) {
+      if (node.type == "player")
+        node.velocity[0] = 0
+      else
+        this.delNode(node)
+    };
+    if (tmp[2] < -60 || tmp[2] > 63) {
+      if (node.type == "player")
+        node.velocity[2] = 0
+      else
+        this.delNode(node)
+    }
   }
 
-  refillWater(node,other,dt){
+  refillWater(node, other, dt) {
     let x = vec3.distance(node.translation, other.translation)
     if (x < 12) {
-      node.ammo += dt*5;
+      node.ammo += dt * 5;
       if (node.ammo > 100) node.ammo = 100;
     }
   }
@@ -97,10 +100,8 @@ export class Physics {
   }
 
   resolveCollision(a, b) {
-    if((b.type == "bullet" || a.type == "player") && (a.type == "bullet" || b.type == "player")) return;
+    if ((b.type == "bullet" || a.type == "player") && (a.type == "bullet" || b.type == "player")) return;
     // Update bounding boxes with global translation.
-    //console.log(a.aabb, b.aabb)
-
     const ta = a.getGlobalTransform();
     const tb = b.getGlobalTransform();
 
@@ -128,50 +129,48 @@ export class Physics {
       return;
     }
 
-    console.log("Collision")
-    if(a.type == "bullet"){
+    if (a.type == "bullet") {
       this.delNode(a);
-      if(b.type == "window"){
+      if (b.type == "fireWindow" || b.type == "fireTree") {
         this.player.score++;
-        console.log("POINTS")
       }
 
     }
 
-    if(a.type == "player"){
+    if (a.type == "player") {
       // Move node A minimally to avoid collision.
-    const diffa = vec3.sub(vec3.create(), maxb, mina);
-    const diffb = vec3.sub(vec3.create(), maxa, minb);
+      const diffa = vec3.sub(vec3.create(), maxb, mina);
+      const diffb = vec3.sub(vec3.create(), maxa, minb);
 
-    let minDiff = Infinity;
-    let minDirection = [0, 0, 0];
-    if (diffa[0] >= 0 && diffa[0] < minDiff) {
-      minDiff = diffa[0];
-      minDirection = [minDiff, 0, 0];
-    }
-    if (diffa[1] >= 0 && diffa[1] < minDiff) {
-      minDiff = diffa[1];
-      minDirection = [0, minDiff, 0];
-    }
-    if (diffa[2] >= 0 && diffa[2] < minDiff) {
-      minDiff = diffa[2];
-      minDirection = [0, 0, minDiff];
-    }
-    if (diffb[0] >= 0 && diffb[0] < minDiff) {
-      minDiff = diffb[0];
-      minDirection = [-minDiff, 0, 0];
-    }
-    if (diffb[1] >= 0 && diffb[1] < minDiff) {
-      minDiff = diffb[1];
-      minDirection = [0, -minDiff, 0];
-    }
-    if (diffb[2] >= 0 && diffb[2] < minDiff) {
-      minDiff = diffb[2];
-      minDirection = [0, 0, -minDiff];
-    }
+      let minDiff = Infinity;
+      let minDirection = [0, 0, 0];
+      if (diffa[0] >= 0 && diffa[0] < minDiff) {
+        minDiff = diffa[0];
+        minDirection = [minDiff, 0, 0];
+      }
+      if (diffa[1] >= 0 && diffa[1] < minDiff) {
+        minDiff = diffa[1];
+        minDirection = [0, minDiff, 0];
+      }
+      if (diffa[2] >= 0 && diffa[2] < minDiff) {
+        minDiff = diffa[2];
+        minDirection = [0, 0, minDiff];
+      }
+      if (diffb[0] >= 0 && diffb[0] < minDiff) {
+        minDiff = diffb[0];
+        minDirection = [-minDiff, 0, 0];
+      }
+      if (diffb[1] >= 0 && diffb[1] < minDiff) {
+        minDiff = diffb[1];
+        minDirection = [0, -minDiff, 0];
+      }
+      if (diffb[2] >= 0 && diffb[2] < minDiff) {
+        minDiff = diffb[2];
+        minDirection = [0, 0, -minDiff];
+      }
 
-    vec3.add(a.translation, a.translation, minDirection);
-    a.updateMatrix();
+      vec3.add(a.translation, a.translation, minDirection);
+      a.updateMatrix();
     }
 
   }

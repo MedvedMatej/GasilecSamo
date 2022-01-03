@@ -23,7 +23,7 @@ export class Node {
     this.mesh = options.mesh || null;
 
     this.aabb = options.aabb || null;
-    this.type = options.type || "None";
+    this.type = options.type || null;
 
     this.children = [...(options.children || [])];
     for (const child of this.children) {
