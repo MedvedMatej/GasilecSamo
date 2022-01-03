@@ -24,18 +24,23 @@ export class Physics {
         //temporary for object placement
         if(node.player){
           if(node.velocity[0] >0){
-            console.log(node.translation[0])
+            //console.log(node.translation[0])
           }
         }
 
         this.limitPlayArea(node,dt);
 
         //move
+        
         vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
+
+        if(node.bullet){
+          //vec3.scaleAndAdd(node.translation, node.translation, [0,-1,0], dt*5);
+        }
 
         //collision checks
         this.scene.traverse((other) => {
-          if(node.aabb && other.aabb && node !== other && node.bullet){
+          if(node.aabb && other.aabb && node !== other){
             this.resolveCollision(node, other)
           }
           
@@ -55,13 +60,13 @@ export class Physics {
         let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
         if (tmp[0] < -60 || tmp[0] > 63) {
-          if (node.children.length > 0 && node.children[0].camera)
+          if (node.player)
             node.velocity[0] = 0
           else
             this.delNode(node)
         };
         if (tmp[2] < -60 || tmp[2] > 63) {
-          if (node.children.length > 0 && node.children[0].camera)
+          if (node.player)
             node.velocity[2] = 0
           else
             this.delNode(node)
@@ -135,28 +140,17 @@ export class Physics {
       return;
     }
 
+    console.log("Collision")
     if(a.bullet){
       this.delNode(a);
-      console.log("...")
-      if(b.window)
-        console.log("WINDOW HIT");
       if(b.fireWindow){
-        //console.log(this.player)
         this.player.score++;
       }
-      //console.log(a,b)
+
     }
-/*     else if(b.bullet){
-      this.delNode(b);
-      console.log(".+.")
-      if(a.window)
-        console.log("WINDOW HIT");
-      
-    } */
 
-
-    /* console.log("Here")
-    // Move node A minimally to avoid collision.
+    if(a.player){
+      // Move node A minimally to avoid collision.
     const diffa = vec3.sub(vec3.create(), maxb, mina);
     const diffb = vec3.sub(vec3.create(), maxa, minb);
 
@@ -188,6 +182,8 @@ export class Physics {
     }
 
     vec3.add(a.translation, a.translation, minDirection);
-    a.updateTransform(); */
+    a.updateMatrix();
+    }
+
   }
 }

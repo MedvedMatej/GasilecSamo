@@ -13,6 +13,7 @@ const playerDefaults = {
     "max": [1, 1, 1]
   },
   velocity: [0, 0, 0],
+
   maxSpeed: 20,
   friction: 0.8,
   acceleration: 20,
@@ -50,6 +51,14 @@ const waterDefaults = {
   bullet: true
 };
 
+const houseDefaults = {
+  "aabb": {
+    "min": [-10, -10, -6],
+    "max": [10, 15, 6]
+  },
+  house: true
+};
+
 class App extends Application {
   start() {
     this.time = Date.now();
@@ -77,19 +86,23 @@ class App extends Application {
     await this.loader.load(uri);
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
-
+    console.log(this.camera.translation)
     
-
-    this.player = await this.loader.loadNode("Hoop");
-
+    
+    
+    this.player = await this.loader.loadNode("Cev");
+    
     this.player.addChild(this.camera);
-    this.loader.setNode("Hoop", playerDefaults);
+    this.camera.translation[1] += 0.3;
+    this.camera.translation[2] += 0.2;
+    this.camera.updateMatrix();
+    this.loader.setNode("Cev", playerDefaults);
     this.bullet = await this.loader.loadNode("Water")
     this.loader.setNode("Water", waterDefaults);
     console.log(this.bullet)
 
-    this.hydrant = await this.loader.loadNode("Hydrant");
-    this.loader.setNode("Hydrant", hydrantDefaults);
+    this.hydrant = await this.loader.loadNode("FireHydrant");
+    this.loader.setNode("FireHydrant", hydrantDefaults);
 
     this.window = await this.loader.loadNode("BigWindow");
     this.loader.setNode("BigWindow", windowDefaults);
@@ -97,6 +110,9 @@ class App extends Application {
 
     this.fireWindow = await this.loader.loadNode("BigWindowFire");
     this.loader.setNode("BigWindowFire", fireWindowDefaults);
+
+    this.house = await this.loader.loadNode("House");
+    this.loader.setNode("House", houseDefaults);
 
     if (!this.scene || !this.camera) {
       throw new Error("Scene or Camera not present in glTF");
@@ -188,7 +204,7 @@ class App extends Application {
         c.ammo--;
 
         let bullet_clone = this.bullet.clone();
-        bullet_clone.translation = vec3.add(vec3.create(), c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * 1, Math.sin(c.rotation[0]) * 1, -Math.cos(c.rotation[1]) * 1));
+        bullet_clone.translation = vec3.add(vec3.create(), c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1])*5 , Math.sin(c.rotation[0]) , -Math.cos(c.rotation[1])*5 ));
 
         let speed = 30;
         const forward = vec3.set(vec3.create(), -Math.sin(c.rotation[1]) * speed, Math.sin(c.rotation[0]) * speed, -Math.cos(c.rotation[1]) * speed);
