@@ -5,7 +5,7 @@ export class Physics {
     this.scene = scene;
 
     this.scene.traverse((node) => {
-      if(node.player){
+      if(node.type == "player"){
         this.player = node;
       }
     });
@@ -19,24 +19,11 @@ export class Physics {
   update(dt) {
     this.scene.traverse((node) => {
       if (node.velocity) {
-        //node.getGlobalTransform();
-
-        //temporary for object placement
-        if(node.player){
-          if(node.velocity[0] >0){
-            //console.log(node.translation[0])
-          }
-        }
 
         this.limitPlayArea(node,dt);
 
         //move
-        
         vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
-
-        if(node.bullet){
-          //vec3.scaleAndAdd(node.translation, node.translation, [0,-1,0], dt*5);
-        }
 
         //collision checks
         this.scene.traverse((other) => {
@@ -45,7 +32,7 @@ export class Physics {
           }
           
           //refill water
-          if (other.hydrant && node.player) {
+          if (other.type == "hydrant" && node.type == "player") {
             this.refillWater(node,other,dt);
           }
         });
@@ -60,13 +47,14 @@ export class Physics {
         let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
         if (tmp[0] < -60 || tmp[0] > 63) {
-          if (node.player)
+          console.log(node.type)
+          if (node.type == "player")
             node.velocity[0] = 0
           else
             this.delNode(node)
         };
         if (tmp[2] < -60 || tmp[2] > 63) {
-          if (node.player)
+          if (node.type == "player")
             node.velocity[2] = 0
           else
             this.delNode(node)
@@ -109,7 +97,7 @@ export class Physics {
   }
 
   resolveCollision(a, b) {
-    if((a.bullet || a.player) && (b.bullet || b.player)) return;
+    if((b.type == "bullet" || a.type == "player") && (a.type == "bullet" || b.type == "player")) return;
     // Update bounding boxes with global translation.
     //console.log(a.aabb, b.aabb)
 
@@ -141,15 +129,16 @@ export class Physics {
     }
 
     console.log("Collision")
-    if(a.bullet){
+    if(a.type == "bullet"){
       this.delNode(a);
-      if(b.fireWindow){
+      if(b.type == "window"){
         this.player.score++;
+        console.log("POINTS")
       }
 
     }
 
-    if(a.player){
+    if(a.type == "player"){
       // Move node A minimally to avoid collision.
     const diffa = vec3.sub(vec3.create(), maxb, mina);
     const diffb = vec3.sub(vec3.create(), maxa, minb);

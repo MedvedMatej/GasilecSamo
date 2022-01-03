@@ -22,6 +22,9 @@ export class Node {
     this.camera = options.camera || null;
     this.mesh = options.mesh || null;
 
+    this.aabb = options.aabb || null;
+    this.type = options.type || "None";
+
     this.children = [...(options.children || [])];
     for (const child of this.children) {
       child.parent = this;

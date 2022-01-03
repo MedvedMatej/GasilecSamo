@@ -13,14 +13,13 @@ const playerDefaults = {
     "max": [1, 1, 1]
   },
   velocity: [0, 0, 0],
-
   maxSpeed: 20,
   friction: 0.8,
   acceleration: 20,
-  player: true,
   time_left: 300,
   score: 0,
-  ammo: 100
+  ammo: 100,
+  type: "player"
 };
 
 const fireWindowDefaults = {
@@ -28,7 +27,7 @@ const fireWindowDefaults = {
     "min": [-2, -2.4, -0.1],
     "max": [2, 2.4, 0.1]
   },
-  fireWindow: true
+  type: "fireWindow"
 };
 
 const windowDefaults = {
@@ -36,11 +35,11 @@ const windowDefaults = {
     "min": [-2, -2.4, -0.1],
     "max": [2, 2.4, 0.1]
   },
-  window: true
+  type: "window"
 };
 
 const hydrantDefaults = {
-  hydrant: true
+  type: "hydrant"
 };
 
 const waterDefaults = {
@@ -48,7 +47,7 @@ const waterDefaults = {
     "min": [-0.5, -0.5, -0.5],
     "max": [0.5, 0.5, 0.5]
   },
-  bullet: true
+  type: "bullet"
 };
 
 const houseDefaults = {
@@ -56,7 +55,7 @@ const houseDefaults = {
     "min": [-10, -10, -6],
     "max": [10, 15, 6]
   },
-  house: true
+  type: "house"
 };
 
 class App extends Application {
@@ -78,7 +77,6 @@ class App extends Application {
 
     this.load("./models/brizgalna/brizgalna.gltf");
 
-    this.initLevel();
   }
 
   async load(uri) {
@@ -86,7 +84,7 @@ class App extends Application {
     await this.loader.load(uri);
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
-    console.log(this.camera.translation)
+    //console.log(this.camera.translation)
     
     
     
@@ -99,14 +97,15 @@ class App extends Application {
     this.loader.setNode("Cev", playerDefaults);
     this.bullet = await this.loader.loadNode("Water")
     this.loader.setNode("Water", waterDefaults);
-    console.log(this.bullet)
+    
+    console.log(this.player.type)
 
     this.hydrant = await this.loader.loadNode("FireHydrant");
     this.loader.setNode("FireHydrant", hydrantDefaults);
 
     this.window = await this.loader.loadNode("BigWindow");
     this.loader.setNode("BigWindow", windowDefaults);
-    console.log(this.window.translation)
+    //console.log(this.window.translation)
 
     this.fireWindow = await this.loader.loadNode("BigWindowFire");
     this.loader.setNode("BigWindowFire", fireWindowDefaults);
@@ -121,6 +120,8 @@ class App extends Application {
     if (!this.camera.camera) {
       throw new Error("Camera node does not contain a camera reference");
     }
+    this.initLevel();
+
     this.physics = new Physics(this.scene);
     this.renderer = new Renderer(this.gl);
     this.renderer.prepareScene(this.scene);
@@ -128,7 +129,41 @@ class App extends Application {
   }
 
   initLevel() {
+    let win1 = this.window.clone();
+    win1.translation = [6.5,0,6.5];
+    win1.updateMatrix();
+    
+    let win2 = win1.clone();
+    win2.translation = [-6.5,0,6.5];
+    win2.updateMatrix();
+    
+    
+    let h1 = this.house.clone();
+    h1.translation[1] =10;
+    h1.updateMatrix();
+    h1.addChild(win1);
+    h1.addChild(win2);
 
+    let h2 = h1.clone();
+    h2.translation[0] = 34;
+    h2.updateMatrix();
+
+    let h3 = h1.clone();
+    h3.translation[2] = 34;
+    h3.rotation[1] = Math.PI;
+    h3.updateMatrix();
+
+    let h4 = h2.clone();
+    h4.translation[2] = 34;
+    h4.rotation[1] = Math.PI;
+    h4.updateMatrix();
+
+    this.scene.addNode(h1);
+    this.scene.addNode(h2);
+    this.scene.addNode(h3);
+    this.scene.addNode(h4);
+
+    //console.log(win1)
   }
 
   update() {
@@ -226,14 +261,14 @@ class App extends Application {
   burnHouses() {
     let count_fires = 0;
     this.scene.traverse((node) => {
-      if (node.fireWindow)
+      if (node.type = "fireWindow")
         count_fires++;
     });
     //console.log(count_fires)
     if (count_fires < 2)
       while (count_fires < 2) {
         this.scene.traverse((node) => {
-          if (node.window) {
+          if (node.type == "window") {
             //console.log("Window!")
             let translation = vec3.clone(node.translation);
 
