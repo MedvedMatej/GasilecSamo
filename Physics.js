@@ -15,9 +15,9 @@ export class Physics {
     this.scene.traverse((node) => {
       if (node.velocity) {
 
-        node.getGlobalTransform();
-        //limit space
+        //node.getGlobalTransform();
 
+        //limit space
           let tmp = vec3.scaleAndAdd(vec3.create(), node.translation, node.velocity, dt);
 
             if(tmp[0] < -60 || tmp [0] > 63){
@@ -35,17 +35,7 @@ export class Physics {
         
 
         vec3.scaleAndAdd(node.translation, node.translation, node.velocity, dt);
-        if(node.left_click){
-          let bullet_clone = this.bullet.clone();
-          bullet_clone.translation = vec3.add(vec3.create(),node.translation.slice(), vec3.set(vec3.create(), -Math.sin(node.rotation[1])*1 , Math.sin(node.rotation[0])*1 ,-Math.cos(node.rotation[1])*1));
-          
-          let speed = 30;
-          const forward = vec3.set(vec3.create(), -Math.sin(node.rotation[1])*speed , Math.sin(node.rotation[0])*speed ,-Math.cos(node.rotation[1])*speed);
-          bullet_clone.velocity = forward;
-          this.scene.addNode(bullet_clone);
-          node.left_click = false;
-        }
-        //console.log(1, node.translation);
+
         this.scene.traverse((other) => {
           if (node !== other && node.children.length == 0 && other.children.length == 0) {
 

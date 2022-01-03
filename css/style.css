@@ -24,6 +24,11 @@ body, html {
     top: 20px;
 }
 
+.overlay div{
+    font-family: 'Teko', sans-serif;
+    font-size: 30px;
+}
+
 a.back {
     display: block;
     padding: 5px 10px;

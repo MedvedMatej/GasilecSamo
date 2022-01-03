@@ -1,19 +1,31 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Game</title>
 
-    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+<head>
+  <title>Game</title>
 
-    <script type="text/javascript" src="./lib/gl-matrix-min.js"></script>
-    <script type="module" src="./game.js"></script>
-  </head>
-  <body>
-    <div class="overlay">
-      <!-- <a class="back" href="">Back</a> -->
-    </div>
-    <div class="fullscreen">
-      <canvas></canvas>
-    </div>
-  </body>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500&display=swap" rel="stylesheet">  
+  <link rel="stylesheet" type="text/css" href="./css/style.css" />
+
+  <script type="text/javascript" src="./lib/gl-matrix-min.js"></script>
+  <script type="module" src="./game.js"></script>
+</head>
+
+<body>
+  <div class="overlay">
+    <!-- <a class="back" href="">Back</a> -->
+  </div>
+  <div class="fullscreen">
+    <canvas></canvas>
+  </div>
+
+  <div class="overlay">
+    <div id="time">Preostali Čas: 5:00</div>
+    <div id="score">Pogasenih hiš: 0</div>
+    <div id="ammo">Rezervuar z vodo: 100</div>
+  </div>
+</body>
+
 </html>

@@ -25,7 +25,7 @@ class App extends Application {
     this.keyupHandler = this.keyupHandler.bind(this);
     this.keys = {};
     this.mousedownHandler = this.mousedownHandler.bind(this);
-    this.mouseupHandler = this.mouseupHandler.bind(this);
+    //this.mouseupHandler = this.mouseupHandler.bind(this);
 
     this.pointerlockchangeHandler = this.pointerlockchangeHandler.bind(this);
     document.addEventListener('pointerlockchange', this.pointerlockchangeHandler);
@@ -61,16 +61,18 @@ class App extends Application {
     this.scene = await this.loader.loadScene(this.loader.defaultScene);
     this.camera = await this.loader.loadNode("Camera");
 
-    this.bullet = await this.loader.loadNode("POV")
+    this.bullet = await this.loader.loadNode("Water")
     this.physics = new Physics(this.scene, this.bullet);
 
-    this.car = await this.loader.loadNode("Hoop");
-    //this.car.rotation = [1,0,0,1];
-    this.car.addChild(this.camera);
+    this.player = await this.loader.loadNode("Hoop");
+    this.player.time_left = 300;
+    this.player.ammo = 100;
+    this.player.score = 0;
+    this.player.addChild(this.camera);
     //this.camera.translation = [0 , 10, 10];
     //this.camera.updateMatrix();
-    //console.log(this.car.rotation)
-    /* this.car.rotation = [0,0,0,1];
+    //console.log(this.player.rotation)
+    /* this.player.rotation = [0,0,0,1];
     this.camera.rotation = [0,0,0,1];
     this.camera.updateMatrix(); */
 
@@ -91,7 +93,7 @@ class App extends Application {
 
   mousemoveHandler(e) {
 
-    const c = this.car;
+    const c = this.player;
     const mouseSensitivity = 0.002;
     const dx = e.movementX;
     const dy = e.movementY;
@@ -115,14 +117,24 @@ class App extends Application {
   }
 
   update() {
+    //car
+    if (!this.player) return;
+    const c = this.player;
+
     const t = (this.time = Date.now());
     const dt = (this.time - this.startTime) * 0.001;
     this.startTime = this.time;
 
-    //car
-    if (!this.car) return;
 
-    const c = this.car;
+    document.getElementById("score").innerHTML = "Pogasenih hiš: " + c.score;
+    c.time_left -= dt;
+    let m = Math.floor(c.time_left/60);
+    let s = Math.floor(c.time_left) % 60;
+    if (s < 10) s = "0" + s;
+    document.getElementById("time").innerHTML = "Preostali Čas: " + m + ":" + s;
+    document.getElementById("ammo").innerHTML = "Rezervuar z vodo: " + c.ammo;
+
+
 
     const forward = vec3.set(
       vec3.create(),
@@ -171,6 +183,22 @@ class App extends Application {
       vec3.scale(c.velocity, c.velocity, c.maxSpeed / len);
     }
 
+    //shotting
+    if(c.left_click){
+      if(c.ammo > 0){
+        c.ammo--;
+
+        let bullet_clone = this.bullet.clone();
+        bullet_clone.translation = vec3.add(vec3.create(),c.translation.slice(), vec3.set(vec3.create(), -Math.sin(c.rotation[1])*1 , Math.sin(c.rotation[0])*1 ,-Math.cos(c.rotation[1])*1));
+        
+        let speed = 30;
+        const forward = vec3.set(vec3.create(), -Math.sin(c.rotation[1])*speed , Math.sin(c.rotation[0])*speed ,-Math.cos(c.rotation[1])*speed);
+        bullet_clone.velocity = forward;
+        this.scene.addNode(bullet_clone);
+      }
+        c.left_click = false;
+    }
+
     if (this.physics) {
       this.physics.update(dt);
     }
@@ -204,20 +232,20 @@ class App extends Application {
   mousedownHandler(e){
     switch(e.which){
       case 1: 
-        this.car.left_click = true;
+        this.player.left_click = true;
         console.log("Fire!!")
         break;
     }
   }
 
-  mouseupHandler(e){
+/*   mouseupHandler(e){
     switch(e.which){
       case 1: 
-        this.car.left_click = false;
+        this.player.left_click = false;
         console.log("No Fire!!")
         break;
     }
-  }
+  } */
 
   enable() {
     document.addEventListener("mousemove", this.mousemoveHandler);
