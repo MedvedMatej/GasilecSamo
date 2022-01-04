@@ -301,16 +301,20 @@ class App extends Application {
 
   burnTrees() {
     let count_fires = 0;
+    let count_tree = 0;
     this.scene.traverse((node) => {
       if (node.type == "fireTree")
         count_fires++;
+      if(node.type == "tree")
+        count_tree++;
     });
+    console.log("Dreves",count_tree,count_fires)
     //console.log("Burning trees: ", count_fires)
     if(count_fires < 2){
       this.scene.traverse((node) => {
         //console.log("Burning")
         let ft = this.fireTree.clone();
-        if (node.type == "tree" && count_fires < 5) {
+        if (node.type == "tree" && node.translation[1] > -5) {
           let trans = vec3.clone(node.translation);
           ft.translation = trans;
           ft.updateMatrix();
@@ -318,8 +322,9 @@ class App extends Application {
           let i = this.scene.nodes.indexOf(node);
           this.scene.nodes.splice(i, 1)
           this.scene.addNode(ft);
+          console.log("Smreka", trans)
           count_fires++;
-          return;
+          //return;
         }
       });
     }
@@ -345,7 +350,6 @@ class App extends Application {
           house.addChild(fw);
           house.removeChild(node);
           count_fires++;
-          return;
         }
       });
     }

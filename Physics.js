@@ -8,6 +8,12 @@ export class Physics {
       if (node.type == "player") {
         this.player = node;
       }
+      else if( node.type == "tree" && node.translation[1] < 5){
+        this.tree = node;
+      }
+      else if( node.type == "window" && !node.parent){
+        this.window = node;
+      }
     });
   }
 
@@ -131,8 +137,27 @@ export class Physics {
 
     if (a.type == "bullet") {
       this.delNode(a);
-      if (b.type == "fireWindow" || b.type == "fireTree") {
+      if (b.type == "fireWindow") {
         this.player.score++;
+        let parent = b.parent;
+        let trans = vec3.clone(b.translation);
+        let win = this.window.clone();
+        win.translation = trans;
+        win.updateMatrix();
+        
+        parent.removeChild(b);
+        parent.addChild(win);
+        console.log(win);
+      }
+      else if( b.type == "fireTree"){
+        this.player.score++;
+        let trans = vec3.clone(b.translation);
+        let nt = this.tree.clone();
+        nt.translation = trans;
+        nt.updateMatrix();
+        //console.log(nt);
+        this.delNode(b);
+        this.scene.addNode(nt);
       }
 
     }
