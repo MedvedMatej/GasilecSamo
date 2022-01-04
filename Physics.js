@@ -3,6 +3,7 @@ import { vec3, mat4 } from "./lib/gl-matrix-module.js";
 export class Physics {
   constructor(scene) {
     this.scene = scene;
+    this.removeNodes = [];
 
     this.scene.traverse((node) => {
       if (node.type == "player") {
@@ -50,6 +51,26 @@ export class Physics {
       }
 
     });
+
+    //console.log(this.removeNodes)
+    let ordered_nodes = [];
+    for(let n of this.removeNodes){
+      let i = this.scene.nodes.indexOf(n);
+      ordered_nodes.push([i,n]);
+    }
+    this.removeNodes = [];
+    ordered_nodes.sort(function(a,b) {
+      return -a[0] + b[0];
+    });
+    if(ordered_nodes.length > 0)
+      console.log(ordered_nodes)
+    let prev_index = -1;
+    for(let n of ordered_nodes){
+      if(n[0] != prev_index){
+        this.delNode(n[1]);
+        prev_index = n[0];
+      }
+    }
   }
 
   limitPlayArea(node, dt) {
@@ -136,7 +157,7 @@ export class Physics {
     }
 
     if (a.type == "bullet") {
-      this.delNode(a);
+      this.removeNodes.push(a);
       if (b.type == "fireWindow") {
         this.player.score++;
         let parent = b.parent;
@@ -155,8 +176,7 @@ export class Physics {
         let nt = this.tree.clone();
         nt.translation = trans;
         nt.updateMatrix();
-        //console.log(nt);
-        this.delNode(b);
+        this.removeNodes.push(b);
         this.scene.addNode(nt);
       }
 

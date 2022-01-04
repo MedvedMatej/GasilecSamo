@@ -60,16 +60,16 @@ const houseDefaults = {
 
 const treeDefaults = {
   "aabb": {
-    "min": [-5, -8, -5],
-    "max": [5, 8, 5]
+    "min": [-5, -13, -5],
+    "max": [5, 6, 5]
   },
   type: "tree"
 };
 
 const fireTreeDefaults = {
   "aabb": {
-    "min": [-5, -8, -5],
-    "max": [5, 8, 5]
+    "min": [-5, -13, -5],
+    "max": [5, 6, 5]
   },
   type: "fireTree"
 };
@@ -308,7 +308,7 @@ class App extends Application {
       if(node.type == "tree")
         count_tree++;
     });
-    console.log("Dreves",count_tree,count_fires)
+    //console.log("Dreves",count_tree,count_fires)
     //console.log("Burning trees: ", count_fires)
     if(count_fires < 2){
       this.scene.traverse((node) => {
@@ -328,7 +328,7 @@ class App extends Application {
         }
       });
     }
-    console.log(count_fires)
+    //console.log(count_fires)
   }
 
   burnHouses() {
