@@ -18,7 +18,7 @@ const playerDefaults = {
   acceleration: 20,
   time_left: 300,
   score: 0,
-  ammo: 100,
+  ammo: 20,
   type: "player"
 };
 
@@ -85,7 +85,6 @@ class App extends Application {
     this.keyupHandler = this.keyupHandler.bind(this);
     this.keys = {};
     this.mousedownHandler = this.mousedownHandler.bind(this);
-    //this.mouseupHandler = this.mouseupHandler.bind(this);
 
     this.pointerlockchangeHandler = this.pointerlockchangeHandler.bind(this);
     document.addEventListener('pointerlockchange', this.pointerlockchangeHandler);
@@ -210,14 +209,23 @@ class App extends Application {
     //player
     if (!this.player) return;
     const c = this.player;
-
+    
     const t = (this.time = Date.now());
     const dt = (this.time - this.startTime) * 0.001;
     this.startTime = this.time;
-
+    
+    c.time_left -= dt;
+    if(c.time_left < 0){
+      let game_over = document.getElementById("gameOver");
+      game_over.innerHTML = "GAME OVER";
+      game_over.classList.add("gameOverOverlay")
+      //document.appendChild(game_over);
+      //document.getElementById("ammo").innerHTML = "poop";
+      this.disable()
+      return;
+    }
 
     document.getElementById("score").innerHTML = "Točke: " + c.score;
-    c.time_left -= dt;
     let m = Math.floor(c.time_left / 60);
     let s = Math.floor(c.time_left) % 60;
     if (s < 10) s = "0" + s;
@@ -308,8 +316,7 @@ class App extends Application {
       if(node.type == "tree")
         count_tree++;
     });
-    //console.log("Dreves",count_tree,count_fires)
-    //console.log("Burning trees: ", count_fires)
+
     if(count_fires < 2){
       this.scene.traverse((node) => {
         //console.log("Burning")
@@ -322,13 +329,12 @@ class App extends Application {
           let i = this.scene.nodes.indexOf(node);
           this.scene.nodes.splice(i, 1)
           this.scene.addNode(ft);
-          console.log("Smreka", trans)
           count_fires++;
-          //return;
+
         }
       });
     }
-    //console.log(count_fires)
+
   }
 
   burnHouses() {
@@ -394,7 +400,6 @@ class App extends Application {
     document.addEventListener("keyup", this.keyupHandler);
 
     document.addEventListener("mousedown", this.mousedownHandler);
-    document.addEventListener("mouseup", this.mouseupHandler);
 
     //this.canvas.removeAttribute("onclick");
   }
@@ -406,12 +411,12 @@ class App extends Application {
     document.removeEventListener("keyup", this.keyupHandler);
 
     document.removeEventListener("mousedown", this.mousedownHandler);
-    document.removeEventListener("mouseup", this.mouseupHandler);
 
     for (let key in this.keys) {
       this.keys[key] = false;
     }
     this.focus = false;
+    document.exitPointerLock();
   }
 
   enableCamera() {
@@ -460,10 +465,17 @@ class App extends Application {
 
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+let instructions = document.getElementById("instructions");
+let button = document.getElementById("startButton");
+button.addEventListener("click", () => {
   const canvas = document.querySelector("canvas");
   const app = new App(canvas);
   canvas.onclick = function () {
     app.enableCamera()
-  }
+  };
+  instructions.remove();
+  document.getElementById("overlay").classList.remove("invisible");
 });
+
+
+//document.addEventListener("DOMContentLoaded"

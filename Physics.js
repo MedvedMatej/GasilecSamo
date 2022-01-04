@@ -62,8 +62,7 @@ export class Physics {
     ordered_nodes.sort(function(a,b) {
       return -a[0] + b[0];
     });
-    if(ordered_nodes.length > 0)
-      console.log(ordered_nodes)
+
     let prev_index = -1;
     for(let n of ordered_nodes){
       if(n[0] != prev_index){
@@ -95,7 +94,7 @@ export class Physics {
     let x = vec3.distance(node.translation, other.translation)
     if (x < 12) {
       node.ammo += dt * 5;
-      if (node.ammo > 100) node.ammo = 100;
+      if (node.ammo > 20) node.ammo = 20;
     }
   }
 
@@ -168,7 +167,7 @@ export class Physics {
         
         parent.removeChild(b);
         parent.addChild(win);
-        console.log(win);
+        
       }
       else if( b.type == "fireTree"){
         this.player.score++;

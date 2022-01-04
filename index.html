@@ -21,11 +21,32 @@
     <canvas></canvas>
   </div>
 
-  <div class="overlay">
+  <div id="overlay" class="overlay invisible">
     <div id="time">Preostali Čas: 5:00</div>
     <div id="score">Točke: 0</div>
-    <div id="ammo">Rezervuar z vodo: 100</div>
+    <div id="ammo">Rezervuar z vodo: 20</div>
   </div>
+
+  <div id="instructions">
+    <h1>Gasilec Samo</h1>
+
+      <p>
+        Navodila: <br>
+        Cilj igre je pogasiti čimveč požarov v določenem času. Gasiš lahko drevesa in hiše.
+        Za gasenje hiš štejejo le okna, saj moramo požar gasiti ob izviru. <br>
+        Paziti moraš tudi na količino vode, ki jo imaš v svoji brizgalni. V kolikor potrebuješ več vode moraš priti do hidranta, v bližini katerega se ti tvoja brizgalna polni.
+      </p>
+      <p>
+        Kontrole: <br>
+        Premikanje: W-A-S-D <br>
+        Obračanj kamere: Premikanje miške <br>
+        Gašenje/Streljanje vode: Levi klik miške
+      </p>
+
+    
+    <button id="startButton" class="btn">START</button>
+  </div>
+  <div id="gameOver"></div>
 </body>
 
 </html>
