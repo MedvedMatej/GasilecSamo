@@ -230,7 +230,7 @@ class App extends Application {
     let s = Math.floor(c.time_left) % 60;
     if (s < 10) s = "0" + s;
     document.getElementById("time").innerHTML = "Preostali Čas: " + m + ":" + s;
-    document.getElementById("ammo").innerHTML = "Rezervuar z vodo: " + Math.floor(c.ammo);
+    document.getElementById("ammo").innerHTML = "Rezervoar z vodo: " + Math.floor(c.ammo);
 
 
 
